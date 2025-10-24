@@ -1,66 +1,42 @@
-"use client";
+// app/clients/[id]/page.tsx
 
-import { useState } from "react";
+import ClientDetailsPageClient from "@/components/Client/ClientDetailsPageClient";
+import { getCustomerById } from "@/components/Tables/fetch";
 
-import { cn } from "@/lib/utils";
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
-import { CustomerForm } from "@/app/forms/form-layout/_components/customer-form";
-import { CustomersList } from "@/components/Tables/customers-list";
-import { ProjectListCustomer } from "@/components/Tables/project-list-customer";
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
 
-export default function ClientDetailsPage() {
-  const tabs = [
-    { id: "contact", label: "Informations générales" },
-    { id: "projets", label: "Projets" },
-  ];
+  const c = await getCustomerById(id);
+  if (!c) return <div>Client introuvable</div>;
 
-  const [activeTab, setActiveTab] = useState("contact");
+  const initial = {
+    firstname: c.firstname ?? "",
+    lastname: c.lastname ?? "",
+    email: c.email ?? "",
+    phone: c.phone ?? "",
+    sexe: (c.gender || "").toLowerCase(),
+    street: c.address.street ?? "",
+    postalCode: c.address.postalCode ?? "",
+    city: c.address.city ?? "",
+    country: c.address.country ?? "",
+  };
+
+  const projectData = c.projects.map((p) => ({
+    id: p.id,
+    name: p.name,
+    status: p.status,
+    createdAt: p.createdAt,
+  }));
 
   return (
-    <>
-      <Breadcrumb pageName="Détails du client" />
-
-      <div className="flex flex-col gap-6">
-        {/* Onglets */}
-        <div className="border-b border-stroke dark:border-dark-3">
-          <nav className="flex flex-wrap gap-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "rounded-t-lg px-4 py-2 text-sm font-medium transition-colors",
-                  "text-dark-5 hover:text-primary dark:text-dark-6 dark:hover:text-primary",
-                  activeTab === tab.id &&
-                    "border-b-2 border-primary text-primary dark:text-primary",
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Contenu selon l’onglet sélectionné */}
-        <div className="mt-2">
-          {activeTab === "contact" && (
-            <div className="animate-fade-in">
-              <CustomerForm />
-            </div>
-          )}
-
-          {activeTab === "projets" && (
-            <div className="animate-fade-in rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-dark-3 dark:bg-dark-2">
-              <h2 className="mb-3 text-lg font-semibold text-dark dark:text-white">
-                Projets
-              </h2>
-              <div className="text-sm text-dark-5 dark:text-dark-6">
-                <ProjectListCustomer data={[]} />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </>
+    <ClientDetailsPageClient
+      customerId={c.id}
+      initial={initial}
+      projectData={projectData}
+    />
   );
 }

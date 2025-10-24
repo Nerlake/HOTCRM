@@ -13,17 +13,25 @@ import dayjs from "dayjs";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import InputGroup from "@/components/FormElements/InputGroup";
-import { Customer } from "@/models/Customer";
 
-type SortKey = "fullname" | "totalspent" | "lastorderdate";
+type SortKey = "fullname" | "totalspent" | "lastorderdate" | "email";
 type SortDir = "asc" | "desc";
+
+/** Type conforme au retour de getCustomers() */
+export type CustomerListItem = {
+  id: string;
+  fullname: string;
+  totalspent: number;
+  lastorderdate: Date | null; // peut être null si aucune facture
+  email: string;
+};
 
 export function CustomersList({
   className,
   data,
 }: {
   className?: string;
-  data: Customer[];
+  data: CustomerListItem[];
 }) {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -40,21 +48,29 @@ export function CustomersList({
   const sorted = useMemo(() => {
     const arr = [...filtered];
     arr.sort((a, b) => {
-      let A: any = a[sortKey];
-      let B: any = b[sortKey];
+      let A: unknown = a[sortKey];
+      let B: unknown = b[sortKey];
 
       if (sortKey === "lastorderdate") {
-        A = dayjs(A).valueOf();
-        B = dayjs(B).valueOf();
+        // nulls en dernier
+        const aTs = a.lastorderdate
+          ? dayjs(a.lastorderdate).valueOf()
+          : -Infinity;
+        const bTs = b.lastorderdate
+          ? dayjs(b.lastorderdate).valueOf()
+          : -Infinity;
+        const cmp = aTs - bTs;
+        return sortDir === "asc" ? cmp : -cmp;
       }
-      // fullname: localeCompare for better alpha sort
+
       if (sortKey === "fullname") {
         const cmp = String(A).localeCompare(String(B), undefined, {
           sensitivity: "base",
         });
         return sortDir === "asc" ? cmp : -cmp;
       }
-      // numbers & timestamps
+
+      // totalspent
       const cmp = (A as number) - (B as number);
       return sortDir === "asc" ? cmp : -cmp;
     });
@@ -63,9 +79,8 @@ export function CustomersList({
 
   // 3) header click handler
   function toggleSort(key: SortKey) {
-    if (key === sortKey) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
+    if (key === sortKey) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
       setSortKey(key);
       setSortDir("asc");
     }
@@ -97,7 +112,6 @@ export function CustomersList({
       <Table>
         <TableHeader>
           <TableRow className="border-none uppercase [&>th]:text-center">
-            {/* Fullname */}
             <TableHead
               role="columnheader"
               aria-sort={ariaSort("fullname")}
@@ -108,12 +122,25 @@ export function CustomersList({
                 onClick={() => toggleSort("fullname")}
                 className="inline-flex items-center hover:underline"
               >
-                Nom
-                <SortIcon active={sortKey === "fullname"} dir={sortDir} />
+                Nom <SortIcon active={sortKey === "fullname"} dir={sortDir} />
               </button>
             </TableHead>
 
-            {/* Total spent */}
+            <TableHead
+              role="columnheader"
+              aria-sort={ariaSort("email")}
+              className="!text-right"
+            >
+              <button
+                type="button"
+                onClick={() => toggleSort("email")}
+                className="inline-flex items-center hover:underline"
+              >
+                Email
+                <SortIcon active={sortKey === "email"} dir={sortDir} />
+              </button>
+            </TableHead>
+
             <TableHead
               role="columnheader"
               aria-sort={ariaSort("totalspent")}
@@ -124,12 +151,11 @@ export function CustomersList({
                 onClick={() => toggleSort("totalspent")}
                 className="inline-flex items-center hover:underline"
               >
-                Total dépensé
+                Total dépensé{" "}
                 <SortIcon active={sortKey === "totalspent"} dir={sortDir} />
               </button>
             </TableHead>
 
-            {/* Last order date */}
             <TableHead
               role="columnheader"
               aria-sort={ariaSort("lastorderdate")}
@@ -139,7 +165,7 @@ export function CustomersList({
                 onClick={() => toggleSort("lastorderdate")}
                 className="inline-flex items-center hover:underline"
               >
-                Date de dernière commande
+                Date de dernière commande{" "}
                 <SortIcon active={sortKey === "lastorderdate"} dir={sortDir} />
               </button>
             </TableHead>
@@ -156,16 +182,30 @@ export function CustomersList({
               <TableCell className="flex min-w-fit items-center gap-3 text-left">
                 {customer.fullname}
               </TableCell>
+              <TableCell className="!text-right">{customer.email}</TableCell>
 
               <TableCell className="!text-right text-green-light-1">
                 {standardFormat(customer.totalspent)}€
               </TableCell>
 
               <TableCell>
-                {dayjs(customer.lastorderdate).format("DD/MM/YYYY")}
+                {customer.lastorderdate
+                  ? dayjs(customer.lastorderdate).format("DD/MM/YYYY")
+                  : "—"}
               </TableCell>
             </TableRow>
           ))}
+
+          {sorted.length === 0 && (
+            <TableRow>
+              <TableCell
+                colSpan={3}
+                className="py-6 text-center text-sm text-gray-500"
+              >
+                Aucun client trouvé.
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

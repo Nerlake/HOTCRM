@@ -1,4 +1,5 @@
 import * as logos from "@/assets/logos";
+import { prisma } from "@/lib/prisma";
 
 export async function getTopProducts() {
   // Fake delay
@@ -120,45 +121,124 @@ export async function getTopChannels() {
   ];
 }
 
-export async function getCustomers() {
-  // Fake delay
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+// components/Tables/fetch.ts
 
-  return [
-    {
-      id: "1",
-      fullname: "Marie Curie",
-      totalspent: 740,
-      lastorderdate: "2025-06-15",
-      conversion: 2.59,
+type CustomerRow = {
+  id: string;
+  firstname: string;
+  lastname: string;
+  totalspent: number;
+  lastorderdate: Date | null;
+  email: string;
+};
+
+export async function getCustomersView(): Promise<
+  {
+    id: string;
+    fullname: string;
+    email: string;
+    totalspent: number;
+    lastorderdate: Date | null;
+  }[]
+> {
+  const rows = await prisma.$queryRaw<CustomerRow[]>`
+    SELECT
+      c."id"                              AS "id",
+      c."firstname"                       AS "firstname",
+      c."lastname"                        AS "lastname",
+      c."email"                           AS "email",
+      COALESCE(SUM(p."amount")::double precision, 0) AS "totalspent",
+      MAX(i."issueDate")                  AS "lastorderdate"
+    FROM "Customer" c
+    LEFT JOIN "Invoice"  i ON i."customerId" = c."id"
+    LEFT JOIN "Payment"  p ON p."invoiceId"  = i."id"
+    GROUP BY c."id", c."firstname", c."lastname"
+    ORDER BY c."lastname" ASC, c."firstname" ASC;
+  `;
+
+  return rows.map((r) => ({
+    id: r.id,
+    fullname: `${r.firstname} ${r.lastname}`.trim(),
+    totalspent: r.totalspent ?? 0,
+    lastorderdate: r.lastorderdate,
+    email: r.email,
+  }));
+}
+
+export async function getCustomerById(id: string) {
+  const customer = await prisma.customer.findUnique({
+    where: { id },
+    include: {
+      sport: true,
+      projects: {
+        include: {
+          quotes: {
+            include: {
+              lines: true,
+            },
+            orderBy: { createdAt: "asc" },
+          },
+          invoices: {
+            include: {
+              lines: true, // ✅ InvoiceLine[]
+              payments: true, // ✅ Payment[]
+            },
+            orderBy: { issueDate: "asc" },
+          },
+        },
+      },
+      quotes: {
+        include: { lines: true }, // si tu veux aussi les devis non liés à un projet
+        orderBy: { createdAt: "desc" },
+      },
+      invoices: {
+        include: { lines: true, payments: true },
+        orderBy: { issueDate: "desc" },
+      },
     },
-    {
-      id: "2",
-      fullname: "Coline Dupont",
-      totalspent: 199.99,
-      lastorderdate: "2024-07-22",
-      conversion: 2.59,
+  });
+
+  if (!customer) return null;
+
+  // calculs utiles (basés sur les paiements)
+  const totalSpent = customer.invoices.reduce((sum, inv) => {
+    const paid = inv.payments.reduce((s, p) => s + Number(p.amount), 0);
+    return sum + paid;
+  }, 0);
+
+  const lastOrderDate =
+    customer.invoices.length > 0
+      ? new Date(
+          Math.max(
+            ...customer.invoices
+              .map((inv) => inv.issueDate)
+              .filter(Boolean)
+              .map((d) => new Date(d!).getTime()),
+          ),
+        )
+      : null;
+
+  return {
+    id: customer.id,
+    firstname: customer.firstname,
+    lastname: customer.lastname,
+    fullname: `${customer.firstname} ${customer.lastname}`.trim(),
+    email: customer.email,
+    phone: customer.phone,
+    gender: customer.gender,
+    sport: customer.sport,
+    address: {
+      street: customer.street,
+      postalCode: customer.postalCode,
+      city: customer.city,
+      country: customer.country,
     },
-    {
-      id: "3",
-      fullname: "Sophie Martin",
-      totalspent: 499.99,
-      lastorderdate: "2024-02-10",
-      conversion: 2.59,
-    },
-    {
-      id: "4",
-      fullname: "Chloé Bernard",
-      totalspent: 120,
-      lastorderdate: "2025-01-25",
-      conversion: 2.59,
-    },
-    {
-      id: "5",
-      fullname: "Emma Dubois",
-      totalspent: 210,
-      lastorderdate: "2025-10-24",
-      conversion: 2.59,
-    },
-  ];
+    totalSpent,
+    lastOrderDate,
+    projects: customer.projects,
+    quotes: customer.quotes,
+    invoices: customer.invoices,
+    createdAt: customer.createdAt,
+    updatedAt: customer.updatedAt,
+  };
 }
