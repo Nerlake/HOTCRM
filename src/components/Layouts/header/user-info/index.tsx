@@ -16,9 +16,9 @@ export function UserInfo() {
   const [isOpen, setIsOpen] = useState(false);
 
   const USER = {
-    name: "John Smith",
-    email: "johnson@nextadmin.com",
-    img: "/images/user/user-03.png",
+    name: "Thebault Couture",
+    email: "contact@thebaultcouture.fr",
+    img: "/images/user/user-00.svg",
   };
 
   return (
@@ -54,7 +54,7 @@ export function UserInfo() {
         className="border border-stroke bg-white shadow-md dark:border-dark-3 dark:bg-gray-dark min-[230px]:min-w-[17.5rem]"
         align="end"
       >
-        <h2 className="sr-only">User information</h2>
+        <h2 className="sr-only">Informations de l'utilisateur</h2>
 
         <figure className="flex items-center gap-2.5 px-5 py-3.5">
           <Image
@@ -78,7 +78,7 @@ export function UserInfo() {
         <hr className="border-[#E8E8E8] dark:border-dark-3" />
 
         <div className="p-2 text-base text-[#4B5563] dark:text-dark-6 [&>*]:cursor-pointer">
-          <Link
+          {/* <Link
             href={"/profile"}
             onClick={() => setIsOpen(false)}
             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[9px] hover:bg-gray-2 hover:text-dark dark:hover:bg-dark-3 dark:hover:text-white"
@@ -86,7 +86,7 @@ export function UserInfo() {
             <UserIcon />
 
             <span className="mr-auto text-base font-medium">View profile</span>
-          </Link>
+          </Link> */}
 
           <Link
             href={"/pages/settings"}
@@ -96,23 +96,23 @@ export function UserInfo() {
             <SettingsIcon />
 
             <span className="mr-auto text-base font-medium">
-              Account Settings
+              Réglages du compte
             </span>
           </Link>
         </div>
 
-        <hr className="border-[#E8E8E8] dark:border-dark-3" />
+        {/* <hr className="border-[#E8E8E8] dark:border-dark-3" /> */}
 
-        <div className="p-2 text-base text-[#4B5563] dark:text-dark-6">
+        {/* <div className="p-2 text-base text-[#4B5563] dark:text-dark-6">
           <button
             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[9px] hover:bg-gray-2 hover:text-dark dark:hover:bg-dark-3 dark:hover:text-white"
             onClick={() => setIsOpen(false)}
           >
             <LogOutIcon />
 
-            <span className="text-base font-medium">Log out</span>
+            <span className="text-base font-medium">Se déconnecter</span>
           </button>
-        </div>
+        </div> */}
       </DropdownContent>
     </Dropdown>
   );

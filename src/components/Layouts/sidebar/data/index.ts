@@ -5,7 +5,7 @@ export const NAV_DATA = [
     label: "COMMERCE",
     items: [
       {
-        title: "Dashboard",
+        title: "Tableau de bord",
         icon: Icons.HomeIcon,
         items: [],
         url: "/",
@@ -46,20 +46,20 @@ export const NAV_DATA = [
       //   icon: Icons.User,
       //   items: [],
       // },
-      // {
-      //   title: "Forms",
-      //   icon: Icons.Alphabet,
-      //   items: [
-      //     {
-      //       title: "Form Elements",
-      //       url: "/forms/form-elements",
-      //     },
-      //     {
-      //       title: "Form Layout",
-      //       url: "/forms/form-layout",
-      //     },
-      //   ],
-      // },
+      {
+        title: "Forms",
+        icon: Icons.Alphabet,
+        items: [
+          {
+            title: "Form Elements",
+            url: "/forms/form-elements",
+          },
+          {
+            title: "Form Layout",
+            url: "/forms/form-layout",
+          },
+        ],
+      },
       // {
       //   title: "Tables",
       //   url: "/tables",

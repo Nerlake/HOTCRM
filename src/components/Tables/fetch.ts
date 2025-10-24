@@ -119,3 +119,46 @@ export async function getTopChannels() {
     },
   ];
 }
+
+export async function getCustomers() {
+  // Fake delay
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
+  return [
+    {
+      id: "1",
+      fullname: "Marie Curie",
+      totalspent: 740,
+      lastorderdate: "2025-06-15",
+      conversion: 2.59,
+    },
+    {
+      id: "2",
+      fullname: "Coline Dupont",
+      totalspent: 199.99,
+      lastorderdate: "2024-07-22",
+      conversion: 2.59,
+    },
+    {
+      id: "3",
+      fullname: "Sophie Martin",
+      totalspent: 499.99,
+      lastorderdate: "2024-02-10",
+      conversion: 2.59,
+    },
+    {
+      id: "4",
+      fullname: "Chloé Bernard",
+      totalspent: 120,
+      lastorderdate: "2025-01-25",
+      conversion: 2.59,
+    },
+    {
+      id: "5",
+      fullname: "Emma Dubois",
+      totalspent: 210,
+      lastorderdate: "2025-10-24",
+      conversion: 2.59,
+    },
+  ];
+}
