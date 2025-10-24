@@ -13,27 +13,27 @@ import dayjs from "dayjs";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import InputGroup from "@/components/FormElements/InputGroup";
-import { Customer } from "@/models/Customer";
+import { Project } from "@/models/Project";
 
-type SortKey = "fullname" | "totalspent" | "lastorderdate";
+type SortKey = "name" | "totalprice" | "createdon";
 type SortDir = "asc" | "desc";
 
-export function CustomersList({
+export function ProjectListCustomer({
   className,
   data,
 }: {
   className?: string;
-  data: Customer[];
+  data: Project[];
 }) {
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("fullname");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [sortKey, setSortKey] = useState<SortKey>("createdon");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   // 1) filter
   const filtered = useMemo(() => {
     const term = search.toLowerCase();
-    return data.filter((c) => c.fullname.toLowerCase().includes(term));
+    return data.filter((c) => c.name.toLowerCase().includes(term));
   }, [data, search]);
 
   // 2) sort
@@ -43,12 +43,12 @@ export function CustomersList({
       let A: any = a[sortKey];
       let B: any = b[sortKey];
 
-      if (sortKey === "lastorderdate") {
+      if (sortKey === "createdon") {
         A = dayjs(A).valueOf();
         B = dayjs(B).valueOf();
       }
-      // fullname: localeCompare for better alpha sort
-      if (sortKey === "fullname") {
+      // name: localeCompare for better alpha sort
+      if (sortKey === "name") {
         const cmp = String(A).localeCompare(String(B), undefined, {
           sensitivity: "base",
         });
@@ -87,12 +87,12 @@ export function CustomersList({
         className,
       )}
     >
-      <InputGroup
+      {/* <InputGroup
         label=""
-        placeholder="Rechercher un client..."
+        placeholder="Rechercher un projet..."
         type="text"
         handleChange={(e) => setSearch(e.target.value)}
-      />
+      /> */}
 
       <Table>
         <TableHeader>
@@ -100,69 +100,66 @@ export function CustomersList({
             {/* Fullname */}
             <TableHead
               role="columnheader"
-              aria-sort={ariaSort("fullname")}
+              aria-sort={ariaSort("name")}
               className="min-w-[120px] !text-left"
             >
               <button
                 type="button"
-                onClick={() => toggleSort("fullname")}
+                onClick={() => toggleSort("name")}
                 className="inline-flex items-center hover:underline"
               >
                 Nom
-                <SortIcon active={sortKey === "fullname"} dir={sortDir} />
+                <SortIcon active={sortKey === "name"} dir={sortDir} />
               </button>
             </TableHead>
 
             {/* Total spent */}
             <TableHead
               role="columnheader"
-              aria-sort={ariaSort("totalspent")}
+              aria-sort={ariaSort("totalprice")}
               className="!text-right"
             >
               <button
                 type="button"
-                onClick={() => toggleSort("totalspent")}
+                onClick={() => toggleSort("totalprice")}
                 className="inline-flex items-center hover:underline"
               >
-                Total dépensé
-                <SortIcon active={sortKey === "totalspent"} dir={sortDir} />
+                Prix TTC
+                <SortIcon active={sortKey === "totalprice"} dir={sortDir} />
               </button>
             </TableHead>
 
             {/* Last order date */}
-            <TableHead
-              role="columnheader"
-              aria-sort={ariaSort("lastorderdate")}
-            >
+            <TableHead role="columnheader" aria-sort={ariaSort("createdon")}>
               <button
                 type="button"
-                onClick={() => toggleSort("lastorderdate")}
+                onClick={() => toggleSort("createdon")}
                 className="inline-flex items-center hover:underline"
               >
-                Date de dernière commande
-                <SortIcon active={sortKey === "lastorderdate"} dir={sortDir} />
+                Crée le
+                <SortIcon active={sortKey === "createdon"} dir={sortDir} />
               </button>
             </TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
-          {sorted.map((customer) => (
+          {sorted.map((project) => (
             <TableRow
-              key={customer.id}
+              key={project.id}
               className="cursor-pointer text-center text-base font-medium text-dark transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-gray-800"
-              onClick={() => router.push(`/clients/${customer.id}`)}
+              onClick={() => router.push(`/clients/${project.id}`)}
             >
               <TableCell className="flex min-w-fit items-center gap-3 text-left">
-                {customer.fullname}
+                {project.name}
               </TableCell>
 
               <TableCell className="!text-right text-green-light-1">
-                {standardFormat(customer.totalspent)}€
+                {standardFormat(project.totalprice)}€
               </TableCell>
 
               <TableCell>
-                {dayjs(customer.lastorderdate).format("DD/MM/YYYY")}
+                {dayjs(project.createdon).format("DD/MM/YYYY")}
               </TableCell>
             </TableRow>
           ))}

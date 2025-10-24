@@ -13,6 +13,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@prisma/client": "^6.18.0",
     "apexcharts": "^4.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -42,6 +43,7 @@
     "postcss": "^8",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.11",
+    "prisma": "^6.18.0",
     "tailwindcss": "^3.4.16",
     "typescript": "^5",
     "wait-on": "^9.0.1"

@@ -5,12 +5,13 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { CustomerForm } from "@/app/forms/form-layout/_components/customer-form";
+import { CustomersList } from "@/components/Tables/customers-list";
+import { ProjectListCustomer } from "@/components/Tables/project-list-customer";
 
 export default function ClientDetailsPage() {
   const tabs = [
     { id: "contact", label: "Informations générales" },
     { id: "projets", label: "Projets" },
-    { id: "notes", label: "Notes" },
   ];
 
   const [activeTab, setActiveTab] = useState("contact");
@@ -48,26 +49,14 @@ export default function ClientDetailsPage() {
             </div>
           )}
 
-          {activeTab === "orders" && (
+          {activeTab === "projets" && (
             <div className="animate-fade-in rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-dark-3 dark:bg-dark-2">
               <h2 className="mb-3 text-lg font-semibold text-dark dark:text-white">
-                Commandes
+                Projets
               </h2>
-              <p className="text-sm text-dark-5 dark:text-dark-6">
-                Aucune commande disponible pour ce client.
-              </p>
-            </div>
-          )}
-
-          {activeTab === "notes" && (
-            <div className="animate-fade-in rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-dark-3 dark:bg-dark-2">
-              <h2 className="mb-3 text-lg font-semibold text-dark dark:text-white">
-                Notes internes
-              </h2>
-              <p className="text-sm text-dark-5 dark:text-dark-6">
-                Ajouter ici des remarques, rappels ou informations sur le
-                client.
-              </p>
+              <div className="text-sm text-dark-5 dark:text-dark-6">
+                <ProjectListCustomer data={[]} />
+              </div>
             </div>
           )}
         </div>

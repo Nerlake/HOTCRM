@@ -1,9 +1,9 @@
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 
 import type { Metadata } from "next";
-import { CustomerForm } from "./_components/customer-form";
 import { SignInForm } from "./_components/sign-in-form";
 import { SignUpForm } from "./_components/sign-up-form";
+import { CustomerForm } from "./_components/customer-form";
 
 export const metadata: Metadata = {
   title: "Form Layout",

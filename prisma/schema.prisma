@@ -1,0 +1,257 @@
+// =====================================
+// HOTCRM — Prisma Schema (PostgreSQL)
+// =====================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum CustomerSexe {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum CustomerType {
+  LEAD
+  CUSTOMER
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ProjectStatus {
+  NEW
+  WAITING_INFO
+  PAUSED
+  CANCELED
+  DONE
+  IN_PRODUCTION
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CONVERTED_TO_INVOICE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIAL
+  PAID
+  CANCELED
+}
+
+// ---------- Référentiels ----------
+
+model Sport {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  customers Customer[]
+}
+
+// ---------- Core ----------
+
+model Customer {
+  id            String         @id @default(cuid())
+  firstname     String
+  lastname      String
+  email         String         @unique
+  phone         String?
+  gender        CustomerSexe
+  type          CustomerType   @default(LEAD)
+  status        CustomerStatus @default(ACTIVE)
+
+  // Adresse
+  street        String?
+  postalCode    String?
+  city          String?
+  country       String?
+
+  // Relation vers Sport (optionnelle)
+  sportId       String?
+  sport         Sport?         @relation(fields: [sportId], references: [id], onDelete: SetNull)
+
+  // Relations métiers
+  projects      Project[]
+  quotes        Quote[]
+  invoices      Invoice[]
+
+  // Métadonnées
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([lastname, firstname])
+  @@index([status])
+  @@index([type])
+}
+
+model Project {
+  id           String        @id @default(cuid())
+  name         String
+  status       ProjectStatus @default(NEW)
+
+  customerId   String
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  // Devis et factures liés
+  quotes       Quote[]
+  invoices     Invoice[]
+
+  // Dates de vie du projet
+  startedAt    DateTime?
+  endedAt      DateTime?
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+}
+
+model Quote {
+  id            String       @id @default(cuid())
+  number        String       @unique                  // ex: Q-2025-0001
+  title         String?
+
+  customerId    String
+  customer      Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  projectId     String?
+  project       Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  status        QuoteStatus  @default(DRAFT)
+  currency      String       @default("EUR")
+
+  // Taux globaux optionnels (sinon tout géré par ligne)
+  globalDiscountRate Decimal? @db.Decimal(5, 2)
+  globalTaxRate      Decimal? @db.Decimal(5, 2)
+
+  validUntil    DateTime?
+  notes         String?
+
+  lines         QuoteLine[]
+
+  // --- V2 (perf): activer le cache si besoin ---
+  // cachedTotalHT  Decimal? @db.Decimal(14, 2)
+  // cachedTotalTVA Decimal? @db.Decimal(14, 2)
+  // cachedTotalTTC Decimal? @db.Decimal(14, 2)
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([customerId])
+  @@index([projectId])
+  @@index([status])
+}
+
+model QuoteLine {
+  id           String   @id @default(cuid())
+
+  quoteId      String
+  quote        Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  description  String
+
+  quantity     Decimal  @db.Decimal(12, 2)           // ex: 1.00, 2.50
+  unitPrice    Decimal  @db.Decimal(12, 2)           // HT
+  discountRate Decimal  @default(0) @db.Decimal(5, 2) // %
+  taxRate      Decimal  @default(0) @db.Decimal(5, 2) // %
+
+  position     Int      @default(0)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([quoteId])
+  @@index([position])
+}
+
+model Invoice {
+  id           String        @id @default(cuid())
+  number       String        @unique                 // ex: F-2025-0001
+  title        String?
+
+  customerId   String
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  projectId    String?
+  project      Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  status       InvoiceStatus @default(DRAFT)
+  currency     String        @default("EUR")
+
+  issueDate    DateTime      @default(now())
+  dueDate      DateTime?
+
+  notes        String?
+
+  lines        InvoiceLine[]
+  payments     Payment[]
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([customerId])
+  @@index([projectId])
+  @@index([status])
+  @@index([issueDate])
+  @@index([dueDate])
+}
+
+model InvoiceLine {
+  id           String   @id @default(cuid())
+
+  invoiceId    String
+  invoice      Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  description  String
+
+  quantity     Decimal  @db.Decimal(12, 2)
+  unitPrice    Decimal  @db.Decimal(12, 2)            // HT
+  discountRate Decimal  @default(0) @db.Decimal(5, 2) // %
+  taxRate      Decimal  @default(0) @db.Decimal(5, 2) // %
+
+  position     Int      @default(0)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([position])
+}
+
+model Payment {
+  id         String   @id @default(cuid())
+
+  invoiceId  String
+  invoice    Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  amount     Decimal  @db.Decimal(12, 2)
+  method     String?  // "CB", "Virement", "Chèque", etc.
+  paidAt     DateTime @default(now())
+  notes      String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([paidAt])
+}

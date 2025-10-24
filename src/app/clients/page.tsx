@@ -11,8 +11,6 @@ export default async function ClientPage() {
     <>
       <Breadcrumb pageName="Clients" />
       <CustomersList data={data} />
-      {/* <Suspense fallback={<TopChannelsSkeleton />}>
-      </Suspense> */}
     </>
   );
 }
