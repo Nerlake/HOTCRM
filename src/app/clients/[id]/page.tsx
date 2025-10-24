@@ -1,5 +1,77 @@
-import React from "react";
+"use client";
+
+import { useState } from "react";
+
+import { cn } from "@/lib/utils";
+import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { CustomerForm } from "@/app/forms/form-layout/_components/customer-form";
 
 export default function ClientDetailsPage() {
-  return <div>page</div>;
+  const tabs = [
+    { id: "contact", label: "Informations générales" },
+    { id: "projets", label: "Projets" },
+    { id: "notes", label: "Notes" },
+  ];
+
+  const [activeTab, setActiveTab] = useState("contact");
+
+  return (
+    <>
+      <Breadcrumb pageName="Détails du client" />
+
+      <div className="flex flex-col gap-6">
+        {/* Onglets */}
+        <div className="border-b border-stroke dark:border-dark-3">
+          <nav className="flex flex-wrap gap-2">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "rounded-t-lg px-4 py-2 text-sm font-medium transition-colors",
+                  "text-dark-5 hover:text-primary dark:text-dark-6 dark:hover:text-primary",
+                  activeTab === tab.id &&
+                    "border-b-2 border-primary text-primary dark:text-primary",
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Contenu selon l’onglet sélectionné */}
+        <div className="mt-2">
+          {activeTab === "contact" && (
+            <div className="animate-fade-in">
+              <CustomerForm />
+            </div>
+          )}
+
+          {activeTab === "orders" && (
+            <div className="animate-fade-in rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-dark-3 dark:bg-dark-2">
+              <h2 className="mb-3 text-lg font-semibold text-dark dark:text-white">
+                Commandes
+              </h2>
+              <p className="text-sm text-dark-5 dark:text-dark-6">
+                Aucune commande disponible pour ce client.
+              </p>
+            </div>
+          )}
+
+          {activeTab === "notes" && (
+            <div className="animate-fade-in rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-dark-3 dark:bg-dark-2">
+              <h2 className="mb-3 text-lg font-semibold text-dark dark:text-white">
+                Notes internes
+              </h2>
+              <p className="text-sm text-dark-5 dark:text-dark-6">
+                Ajouter ici des remarques, rappels ou informations sur le
+                client.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
 }
